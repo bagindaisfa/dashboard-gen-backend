@@ -5,6 +5,7 @@ import datasetRoutes from "./datasetRoutes.js";
 import queryRoutes from "./queryRoutes.js";
 import dbConnectionRoutes from "./dbConnectionRoutes.js";
 import chartRoutes from "./chartRoutes.js";
+import dashboardRoutes from "./dashboardRoutes.js";
 
 const router = Router();
 
@@ -29,5 +30,8 @@ router.use("/db", dbConnectionRoutes);
 
 //chart builder
 router.use("/charts", chartRoutes);
+
+//dashboard builder
+router.use("/dashboards", dashboardRoutes);
 
 export default router;

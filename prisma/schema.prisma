@@ -20,6 +20,7 @@ model User {
   datasets      Dataset[]
   dbConnections DatabaseConnection[]
   charts Chart[]
+  dashboards Dashboard[]
 }
 
 model Organization {
@@ -33,6 +34,7 @@ model Organization {
   datasets   Dataset[]
   dbConnections DatabaseConnection[]
   charts Chart[]
+  dashboards Dashboard[]
 }
 
 model OrganizationMember {
@@ -85,4 +87,32 @@ model Chart {
   dataset     Dataset     @relation(fields: [datasetId], references: [id])
   org         Organization @relation(fields: [orgId], references: [id])
   user        User         @relation(fields: [createdBy], references: [id])
+}
+
+model Dashboard {
+  id        String   @id @default(uuid())
+  orgId     String
+  createdBy String
+  title     String
+  createdAt DateTime @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id])
+  user  User         @relation(fields: [createdBy], references: [id])
+
+  items DashboardItem[]
+}
+
+model DashboardItem {
+  id          String   @id @default(uuid())
+  dashboardId String
+  chartId     String
+
+  // layout info untuk frontend grid
+  x           Int
+  y           Int
+  w           Int
+  h           Int
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+  chart     Chart     @relation(fields: [chartId], references: [id])
 }
