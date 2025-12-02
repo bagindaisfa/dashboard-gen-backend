@@ -17,6 +17,8 @@ model User {
 
   organizations Organization[] @relation("OwnedOrganizations")
   members       OrganizationMember[]
+  datasets      Dataset[]
+  dbConnections DatabaseConnection[]
 }
 
 model Organization {
@@ -27,6 +29,8 @@ model Organization {
 
   owner  User @relation("OwnedOrganizations", fields: [ownerId], references: [id])
   members OrganizationMember[]
+  datasets   Dataset[]
+  dbConnections DatabaseConnection[]
 }
 
 model OrganizationMember {
@@ -38,4 +42,29 @@ model OrganizationMember {
 
   user User @relation(fields: [userId], references: [id])
   org  Organization @relation(fields: [orgId], references: [id])
+}
+
+model Dataset {
+  id           String   @id @default(uuid())
+  name         String
+  orgId        String
+  createdBy    String
+  sourceType   String          // "file" | "postgres"
+  config       Json            // file path, db connection, table name, etc.
+  createdAt    DateTime @default(now())
+
+  org          Organization @relation(fields: [orgId], references: [id])
+  user         User          @relation(fields: [createdBy], references: [id])
+}
+
+model DatabaseConnection {
+  id        String   @id @default(uuid())
+  orgId     String
+  createdBy String
+  type      String    // "postgres"
+  config    Json      // host, port, user, password, database
+  createdAt DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id])
+  user User         @relation(fields: [createdBy], references: [id])
 }
