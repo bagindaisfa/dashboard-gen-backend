@@ -19,6 +19,7 @@ model User {
   members       OrganizationMember[]
   datasets      Dataset[]
   dbConnections DatabaseConnection[]
+  charts Chart[]
 }
 
 model Organization {
@@ -31,6 +32,7 @@ model Organization {
   members OrganizationMember[]
   datasets   Dataset[]
   dbConnections DatabaseConnection[]
+  charts Chart[]
 }
 
 model OrganizationMember {
@@ -67,4 +69,20 @@ model DatabaseConnection {
 
   org  Organization @relation(fields: [orgId], references: [id])
   user User         @relation(fields: [createdBy], references: [id])
+}
+
+model Chart {
+  id        String   @id @default(uuid())
+  orgId     String
+  createdBy String
+  datasetId String
+
+  title       String
+  type        String   // bar | line | pie | table | metric
+  config      Json     // xAxis, yAxis, groupBy, filters, aggregation
+  createdAt   DateTime @default(now())
+
+  dataset     Dataset     @relation(fields: [datasetId], references: [id])
+  org         Organization @relation(fields: [orgId], references: [id])
+  user        User         @relation(fields: [createdBy], references: [id])
 }
