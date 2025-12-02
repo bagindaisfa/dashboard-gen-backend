@@ -32,14 +32,68 @@ export const datasetController = {
     }
   },
 
+  createFromDb: async (req, res, next) => {
+    try {
+      const orgId = req.headers["x-org-id"];
+      const userId = req.user.id;
+
+      const { connectionId, table } = req.body;
+
+      if (!connectionId || !table) {
+        return res
+          .status(400)
+          .json({ message: "connectionId and table are required" });
+      }
+
+      // cek koneksi valid
+      const connection = await prisma.databaseConnection.findUnique({
+        where: { id: connectionId },
+      });
+
+      if (!connection) {
+        return res
+          .status(404)
+          .json({ message: "Database connection not found" });
+      }
+
+      // simpan dataset
+      const dataset = await datasetService.createFromDb({
+        orgId,
+        userId,
+        connectionId,
+        table,
+      });
+
+      res.json(dataset);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   preview: async (req, res, next) => {
     try {
       const id = req.params.id;
       const dataset = await datasetService.getDatasetById(id);
 
-      const preview = await datasetService.previewFileDataset(dataset);
+      if (dataset.sourceType === "file") {
+        const preview = await datasetService.previewFileDataset(dataset);
+        return res.json(preview);
+      }
 
-      res.json(preview);
+      if (dataset.sourceType === "postgres") {
+        // ambil connection
+        const connection = await prisma.databaseConnection.findUnique({
+          where: { id: dataset.config.connectionId },
+        });
+
+        const preview = await dbConnectionService.previewTable(
+          connection,
+          dataset.config.table
+        );
+        return res.json(preview);
+      }
+
+      res.status(400).json({ message: "Unsupported dataset type" });
     } catch (err) {
       next(err);
     }

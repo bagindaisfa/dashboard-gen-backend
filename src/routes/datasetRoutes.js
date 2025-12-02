@@ -16,4 +16,6 @@ router.post(
 );
 router.get("/:id/preview", authMiddleware, datasetController.preview);
 
+router.post("/from-db", authMiddleware, datasetController.createFromDb);
+
 export default router;

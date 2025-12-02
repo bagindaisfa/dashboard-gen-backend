@@ -3,6 +3,7 @@ import authRoutes from "./authRoutes.js";
 import organizationRoutes from "./organizationRoutes.js";
 import datasetRoutes from "./datasetRoutes.js";
 import queryRoutes from "./queryRoutes.js";
+import dbConnectionRoutes from "./dbConnectionRoutes.js";
 
 const router = Router();
 
@@ -21,5 +22,8 @@ router.use("/datasets", datasetRoutes);
 
 //query engine
 router.use("/query", queryRoutes);
+
+//db connection
+router.use("/db", dbConnectionRoutes);
 
 export default router;

@@ -53,4 +53,21 @@ export const datasetService = {
   getDatasetById: (id) => {
     return prisma.dataset.findUnique({ where: { id } });
   },
+
+  createFromDb: async ({ orgId, userId, connectionId, table }) => {
+    const dataset = await prisma.dataset.create({
+      data: {
+        name: table,
+        orgId,
+        createdBy: userId,
+        sourceType: "postgres",
+        config: {
+          connectionId,
+          table,
+        },
+      },
+    });
+
+    return dataset;
+  },
 };
