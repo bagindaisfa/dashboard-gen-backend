@@ -3,15 +3,40 @@ import XLSX from "xlsx";
 import fs from "fs";
 import { parse } from "csv-parse/sync";
 
+const MAX_ROWS = 5000; // Step 13.3
+const QUERY_TIMEOUT = 5000; // Step 13.6 (5 seconds timeout)
+
 export const queryEngine = {
   run: async ({ dataset, query }) => {
-    if (dataset.sourceType === "file") {
-      return runFileQuery(dataset, query);
-    }
+    // === Step 13.6: Timeout wrapper ===
+    const timedRun = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error("Query timeout exceeded (5 seconds)."));
+      }, QUERY_TIMEOUT);
 
-    throw new Error("Source type not supported yet");
+      runInternal({ dataset, query })
+        .then((res) => {
+          clearTimeout(timer);
+          resolve(res);
+        })
+        .catch((err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+
+    return timedRun;
   },
 };
+
+// Internal function
+async function runInternal({ dataset, query }) {
+  if (dataset.sourceType === "file") {
+    return runFileQuery(dataset, query);
+  }
+
+  throw new Error("Source type not supported yet");
+}
 
 function loadFileRows(dataset) {
   const filePath = dataset.config.filePath;
@@ -32,6 +57,11 @@ function loadFileRows(dataset) {
 
 function runFileQuery(dataset, query) {
   let rows = loadFileRows(dataset);
+
+  // === Step 13.3: Anti large dataset ===
+  if (rows.length > MAX_ROWS) {
+    rows = rows.slice(0, MAX_ROWS);
+  }
 
   // 1. Filtering
   if (query.filters) {
@@ -87,7 +117,6 @@ function runFileQuery(dataset, query) {
   // 4. Aggregation
   if (query.aggregate) {
     const { field, op } = query.aggregate;
-
     const nums = rows.map((r) => Number(r[field])).filter((n) => !isNaN(n));
 
     let value = null;
@@ -123,6 +152,7 @@ function runFileQuery(dataset, query) {
   return {
     total,
     page,
+    limit,
     data,
   };
 }

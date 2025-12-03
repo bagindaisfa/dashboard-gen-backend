@@ -1,5 +1,6 @@
 import prisma from "../utils/prisma.js";
 import { chartService } from "./chartService.js";
+import { cache } from "../utils/cache.js";
 
 export const dashboardService = {
   createDashboard: (data) => {
@@ -51,8 +52,11 @@ export const dashboardService = {
   },
 
   runDashboard: async (dashboard) => {
-    const items = dashboard.items;
+    const cacheKey = `dashboard-run:${dashboard.id}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
 
+    const items = dashboard.items;
     const results = [];
 
     for (const item of items) {
@@ -66,7 +70,7 @@ export const dashboardService = {
         data,
       });
     }
-
+    cache.set(cacheKey, results, 30000);
     return results;
   },
 

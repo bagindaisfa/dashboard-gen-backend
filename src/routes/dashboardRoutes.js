@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { dashboardController } from "../controllers/dashboardController.js";
 import { requireRole } from "../middlewares/permissionMiddleware.js";
+import { dashboardRateLimiter } from "../middlewares/rateLimit.js";
 
 const router = Router();
 
@@ -45,6 +46,7 @@ router.delete(
 
 router.get(
   "/:id/run",
+  dashboardRateLimiter,
   authMiddleware,
   requireRole(["owner", "editor", "viewer"]),
   dashboardController.run
@@ -66,6 +68,10 @@ router.delete(
 
 // PUBLIC ROUTES (no auth needed)
 router.get("/public/:publicId", dashboardController.publicDetail);
-router.get("/public/:publicId/run", dashboardController.publicRun);
+router.get(
+  "/public/:publicId/run",
+  dashboardRateLimiter,
+  dashboardController.publicRun
+);
 
 export default router;

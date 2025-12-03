@@ -1,5 +1,7 @@
 import prisma from "../utils/prisma.js";
 import { queryEngine } from "./queryEngine.js";
+import hash from "object-hash";
+import { cache } from "../utils/cache.js";
 
 export const chartService = {
   createChart: (data) => {
@@ -38,10 +40,17 @@ export const chartService = {
 
     const query = chart.config;
 
+    const cacheKey = `chart:${chart.id}:${hash(query)}`;
+
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const result = await queryEngine.run({
       dataset,
       query,
     });
+
+    cache.set(cacheKey, result, 60000);
 
     return result;
   },

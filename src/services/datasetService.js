@@ -7,7 +7,7 @@ export const datasetService = {
   createFileDataset: async ({ orgId, userId, file }) => {
     const filePath = file.path;
 
-    const dataset = await prisma.dataset.create({
+    return prisma.dataset.create({
       data: {
         name: file.originalname,
         orgId,
@@ -19,26 +19,40 @@ export const datasetService = {
         },
       },
     });
-
-    return dataset;
   },
 
-  previewFileDataset: async (dataset) => {
+  // === Step 13.4: Add pagination preview ===
+  previewFileDataset: async (dataset, page = 1, limit = 20) => {
     const filePath = dataset.config.filePath;
+
+    const offset = (page - 1) * limit;
 
     if (filePath.endsWith(".xlsx")) {
       const workbook = XLSX.readFile(filePath);
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet);
-      return json.slice(0, 20);
+
+      return {
+        total: json.length,
+        page,
+        limit,
+        rows: json.slice(offset, offset + limit),
+      };
     }
 
     if (filePath.endsWith(".csv")) {
-      const fileContent = fs.readFileSync(filePath);
+      const content = fs.readFileSync(filePath);
+
       return new Promise((resolve, reject) => {
-        parse(fileContent, { columns: true }, (err, output) => {
+        parse(content, { columns: true }, (err, output) => {
           if (err) reject(err);
-          resolve(output.slice(0, 20));
+
+          resolve({
+            total: output.length,
+            page,
+            limit,
+            rows: output.slice(offset, offset + limit),
+          });
         });
       });
     }
@@ -46,16 +60,11 @@ export const datasetService = {
     throw new Error("File type not supported");
   },
 
-  getDatasets: (orgId) => {
-    return prisma.dataset.findMany({ where: { orgId } });
-  },
-
-  getDatasetById: (id) => {
-    return prisma.dataset.findUnique({ where: { id } });
-  },
+  getDatasets: (orgId) => prisma.dataset.findMany({ where: { orgId } }),
+  getDatasetById: (id) => prisma.dataset.findUnique({ where: { id } }),
 
   createFromDb: async ({ orgId, userId, connectionId, table }) => {
-    const dataset = await prisma.dataset.create({
+    return prisma.dataset.create({
       data: {
         name: table,
         orgId,
@@ -67,7 +76,5 @@ export const datasetService = {
         },
       },
     });
-
-    return dataset;
   },
 };
