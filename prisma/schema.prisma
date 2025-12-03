@@ -2,6 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator jsonSchema {
+  provider = "prisma-json-schema-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -59,6 +63,7 @@ model Dataset {
 
   org          Organization @relation(fields: [orgId], references: [id])
   user         User          @relation(fields: [createdBy], references: [id])
+  charts       Chart[]
 }
 
 model DatabaseConnection {
@@ -87,6 +92,7 @@ model Chart {
   dataset     Dataset     @relation(fields: [datasetId], references: [id])
   org         Organization @relation(fields: [orgId], references: [id])
   user        User         @relation(fields: [createdBy], references: [id])
+  dashboardItems DashboardItem[]
 }
 
 model Dashboard {
