@@ -94,6 +94,10 @@ model Dashboard {
   orgId     String
   createdBy String
   title     String
+
+  public     Boolean   @default(false)
+  publicId   String?   @unique
+
   createdAt DateTime @default(now())
 
   org   Organization @relation(fields: [orgId], references: [id])

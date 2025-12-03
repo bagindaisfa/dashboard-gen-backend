@@ -69,4 +69,33 @@ export const dashboardService = {
 
     return results;
   },
+
+  enablePublic: async (id) => {
+    return prisma.dashboard.update({
+      where: { id },
+      data: {
+        public: true,
+        publicId: uuid(),
+      },
+    });
+  },
+
+  disablePublic: async (id) => {
+    return prisma.dashboard.update({
+      where: { id },
+      data: {
+        public: false,
+        publicId: null,
+      },
+    });
+  },
+
+  getByPublicId: (publicId) => {
+    return prisma.dashboard.findUnique({
+      where: { publicId },
+      include: {
+        items: { include: { chart: true } },
+      },
+    });
+  },
 };

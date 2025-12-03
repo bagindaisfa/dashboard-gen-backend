@@ -93,4 +93,65 @@ export const dashboardController = {
       next(err);
     }
   },
+
+  enablePublic: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      const dashboard = await dashboardService.enablePublic(id);
+
+      res.json({
+        message: "Public access enabled",
+        publicUrl: `/api/public/dashboard/${dashboard.publicId}`,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  disablePublic: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      await dashboardService.disablePublic(id);
+
+      res.json({ message: "Public access disabled" });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  publicDetail: async (req, res, next) => {
+    try {
+      const publicId = req.params.publicId;
+
+      const dashboard = await dashboardService.getByPublicId(publicId);
+
+      if (!dashboard || !dashboard.public) {
+        return res.status(404).json({ message: "Dashboard not found" });
+      }
+
+      res.json(dashboard);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  publicRun: async (req, res, next) => {
+    try {
+      const publicId = req.params.publicId;
+
+      const dashboard = await dashboardService.getByPublicId(publicId);
+
+      if (!dashboard || !dashboard.public) {
+        return res.status(404).json({ message: "Dashboard not found" });
+      }
+
+      const result = await dashboardService.runDashboard(dashboard);
+
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
 };
