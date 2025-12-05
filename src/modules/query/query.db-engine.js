@@ -1,6 +1,8 @@
 import pkg from "pg";
 const { Client } = pkg;
 import { ApiError } from "../../core/error.js";
+import { detectColumnType } from "../query/query.type.js";
+import { dbConnectionService } from "../db/dbConnection.service.js";
 
 export const dbQueryEngine = {
   run: async ({ dataset, query, connection }) => {
@@ -18,7 +20,20 @@ export const dbQueryEngine = {
 
     const table = dataset.config.table;
 
-    // START building SQL
+    // ==========================================
+    // STEP 1 — LOAD COLUMN SCHEMA
+    // ==========================================
+    const schema = await dbConnectionService.getTableSchema(connection, table);
+
+    // Build { column_name: "number" | "string" | "date" }
+    const columnTypes = {};
+    schema.forEach((col) => {
+      columnTypes[col.column_name] = detectColumnType(col.data_type);
+    });
+
+    // ==========================================
+    // STEP 2 — BUILD SQL BASE
+    // ==========================================
     let sql = `SELECT * FROM "${table}"`;
     const params = [];
     let where = [];
@@ -28,26 +43,51 @@ export const dbQueryEngine = {
     // ----------------------------
     if (query.filters) {
       query.filters.forEach((f) => {
-        const paramKey = `$${params.length + 1}`;
-        params.push(
-          f.op === "contains" ? `%${f.value}%` : f.value
-        );
+        const field = f.field;
+        const type = columnTypes[field];
 
-        let condition = null;
+        if (!type) throw ApiError.badRequest(`Unknown field: ${field}`);
+
+        let value = f.value;
+
+        // Convert types
+        if (type === "number") {
+          value = Number(value);
+          if (isNaN(value))
+            throw ApiError.badRequest(`Value for ${field} must be number`);
+        }
+
+        if (type === "date") {
+          value = new Date(value);
+          if (value.toString() === "Invalid Date") {
+            throw ApiError.badRequest(`Invalid date format for ${field}`);
+          }
+        }
+
+        const paramKey = `$${params.length + 1}`;
+
+        if (f.op === "contains") {
+          if (type !== "string") {
+            throw ApiError.badRequest(`contains only valid for string columns`);
+          }
+          params.push(`%${value}%`);
+          where.push(`"${field}" ILIKE ${paramKey}`);
+          return;
+        }
+
+        // Other ops (=, !=, <, >)
         switch (f.op) {
           case "=":
           case "!=":
           case ">":
           case "<":
-            condition = `"${f.field}" ${f.op} ${paramKey}`;
+            params.push(value);
+            where.push(`"${field}" ${f.op} ${paramKey}`);
             break;
-          case "contains":
-            condition = `"${f.field}" ILIKE ${paramKey}`;
-            break;
+
           default:
             throw ApiError.badRequest(`Unsupported operator: ${f.op}`);
         }
-        where.push(condition);
       });
     }
 
@@ -60,6 +100,9 @@ export const dbQueryEngine = {
     // ----------------------------
     if (query.groupBy) {
       const field = query.groupBy;
+
+      if (!columnTypes[field])
+        throw ApiError.badRequest(`Unknown field: ${field}`);
 
       const groupSql = `
         SELECT "${field}", COUNT(*) AS count
@@ -80,6 +123,11 @@ export const dbQueryEngine = {
     if (query.aggregate) {
       const { field, op } = query.aggregate;
 
+      if (!columnTypes[field])
+        throw ApiError.badRequest(`Unknown field: ${field}`);
+
+      const type = columnTypes[field];
+
       const opMap = {
         sum: "SUM",
         avg: "AVG",
@@ -88,8 +136,11 @@ export const dbQueryEngine = {
         count: "COUNT",
       };
 
-      if (!opMap[op]) {
-        throw ApiError.badRequest(`Unsupported aggregate: ${op}`);
+      if (!opMap[op]) throw ApiError.badRequest(`Unsupported aggregate: ${op}`);
+      if (type !== "number" && op !== "count") {
+        throw ApiError.badRequest(
+          `Aggregation '${op}' only valid for numeric columns`
+        );
       }
 
       const aggSql = `
@@ -107,8 +158,19 @@ export const dbQueryEngine = {
     // 4) SORTING (sanitized)
     // ----------------------------
     if (query.sort && query.sort.field) {
+      const field = query.sort.field;
       const order = query.sort.order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
-      sql += ` ORDER BY "${query.sort.field}" ${order}`;
+
+      if (!columnTypes[field])
+        throw ApiError.badRequest(`Unknown field: ${field}`);
+
+      const type = columnTypes[field];
+
+      if (type === "string") {
+        sql += ` ORDER BY LOWER("${field}") ${order}`;
+      } else {
+        sql += ` ORDER BY "${field}" ${order}`;
+      }
     }
 
     // ----------------------------
@@ -139,6 +201,7 @@ export const dbQueryEngine = {
       page,
       limit,
       rows,
+      columnTypes,
     };
   },
 };

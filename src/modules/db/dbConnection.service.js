@@ -76,4 +76,20 @@ export const dbConnectionService = {
       rows: res.rows,
     };
   },
+
+  getTableSchema: async (connection, table) => {
+    const client = new Client(connection.config);
+    await client.connect();
+
+    const sql = `
+      SELECT column_name, data_type
+      FROM information_schema.columns
+      WHERE table_name = $1
+    `;
+
+    const { rows } = await client.query(sql, [table]);
+    await client.end();
+
+    return rows;
+  }
 };
