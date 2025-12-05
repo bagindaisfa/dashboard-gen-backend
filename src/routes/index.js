@@ -1,37 +1,23 @@
-import { Router } from "express";
-import authRoutes from "./authRoutes.js";
-import organizationRoutes from "./organizationRoutes.js";
-import datasetRoutes from "./datasetRoutes.js";
-import queryRoutes from "./queryRoutes.js";
-import dbConnectionRoutes from "./dbConnectionRoutes.js";
-import chartRoutes from "./chartRoutes.js";
-import dashboardRoutes from "./dashboardRoutes.js";
+import express from "express";
 
-const router = Router();
+import authRoutes from "../modules/auth/auth.routes.js";
+import datasetRoutes from "../modules/dataset/dataset.routes.js";
+import chartRoutes from "../modules/chart/chart.routes.js";
+import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
+import dbRoutes from "../modules/db/dbConnection.routes.js";
+import queryRoutes from "../modules/query/query.routes.js";
+import organizationRoutes from "../modules/organization/organization.routes.js";
+import publicDashboardRoutes from "../modules/public-dashboard/publicDashboard.routes.js";
 
-router.get("/test", (req, res) => {
-  res.json({ ok: true });
-});
+const router = express.Router();
 
-// auth
 router.use("/auth", authRoutes);
-
-//organization
-router.use("/organizations", organizationRoutes);
-
-//dataset
 router.use("/datasets", datasetRoutes);
-
-//query engine
-router.use("/query", queryRoutes);
-
-//db connection
-router.use("/db", dbConnectionRoutes);
-
-//chart builder
 router.use("/charts", chartRoutes);
-
-//dashboard builder
 router.use("/dashboards", dashboardRoutes);
+router.use("/db-connections", dbRoutes);
+router.use("/query", queryRoutes);
+router.use("/organizations", organizationRoutes);
+router.use("/public-dashboard", publicDashboardRoutes);
 
 export default router;
