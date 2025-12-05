@@ -2,6 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator jsonSchema {
+  provider = "prisma-json-schema-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -17,6 +21,10 @@ model User {
 
   organizations Organization[] @relation("OwnedOrganizations")
   members       OrganizationMember[]
+  datasets      Dataset[]
+  dbConnections DatabaseConnection[]
+  charts Chart[]
+  dashboards Dashboard[]
 }
 
 model Organization {
@@ -27,6 +35,10 @@ model Organization {
 
   owner  User @relation("OwnedOrganizations", fields: [ownerId], references: [id])
   members OrganizationMember[]
+  datasets   Dataset[]
+  dbConnections DatabaseConnection[]
+  charts Chart[]
+  dashboards Dashboard[]
 }
 
 model OrganizationMember {
@@ -38,4 +50,79 @@ model OrganizationMember {
 
   user User @relation(fields: [userId], references: [id])
   org  Organization @relation(fields: [orgId], references: [id])
+}
+
+model Dataset {
+  id           String   @id @default(uuid())
+  name         String
+  orgId        String
+  createdBy    String
+  sourceType   String          // "file" | "postgres"
+  config       Json            // file path, db connection, table name, etc.
+  createdAt    DateTime @default(now())
+
+  org          Organization @relation(fields: [orgId], references: [id])
+  user         User          @relation(fields: [createdBy], references: [id])
+  charts       Chart[]
+}
+
+model DatabaseConnection {
+  id        String   @id @default(uuid())
+  orgId     String
+  createdBy String
+  type      String    // "postgres"
+  config    Json      // host, port, user, password, database
+  createdAt DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id])
+  user User         @relation(fields: [createdBy], references: [id])
+}
+
+model Chart {
+  id        String   @id @default(uuid())
+  orgId     String
+  createdBy String
+  datasetId String
+
+  title       String
+  type        String   // bar | line | pie | table | metric
+  config      Json     // xAxis, yAxis, groupBy, filters, aggregation
+  createdAt   DateTime @default(now())
+
+  dataset     Dataset     @relation(fields: [datasetId], references: [id])
+  org         Organization @relation(fields: [orgId], references: [id])
+  user        User         @relation(fields: [createdBy], references: [id])
+  dashboardItems DashboardItem[]
+}
+
+model Dashboard {
+  id        String   @id @default(uuid())
+  orgId     String
+  createdBy String
+  title     String
+
+  public     Boolean   @default(false)
+  publicId   String?   @unique
+
+  createdAt DateTime @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id])
+  user  User         @relation(fields: [createdBy], references: [id])
+
+  items DashboardItem[]
+}
+
+model DashboardItem {
+  id          String   @id @default(uuid())
+  dashboardId String
+  chartId     String
+
+  // layout info untuk frontend grid
+  x           Int
+  y           Int
+  w           Int
+  h           Int
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+  chart     Chart     @relation(fields: [chartId], references: [id])
 }

@@ -1,0 +1,342 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string",
+          "default": "email"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Organization"
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OrganizationMember"
+          }
+        },
+        "datasets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Dataset"
+          }
+        },
+        "dbConnections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseConnection"
+          }
+        },
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Chart"
+          }
+        },
+        "dashboards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Dashboard"
+          }
+        }
+      }
+    },
+    "Organization": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "owner": {
+          "$ref": "#/definitions/User"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OrganizationMember"
+          }
+        },
+        "datasets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Dataset"
+          }
+        },
+        "dbConnections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DatabaseConnection"
+          }
+        },
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Chart"
+          }
+        },
+        "dashboards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Dashboard"
+          }
+        }
+      }
+    },
+    "OrganizationMember": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "org": {
+          "$ref": "#/definitions/Organization"
+        }
+      }
+    },
+    "Dataset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sourceType": {
+          "type": "string"
+        },
+        "config": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "org": {
+          "$ref": "#/definitions/Organization"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Chart"
+          }
+        }
+      }
+    },
+    "DatabaseConnection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "config": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "org": {
+          "$ref": "#/definitions/Organization"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        }
+      }
+    },
+    "Chart": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "config": {
+          "type": [
+            "number",
+            "string",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dataset": {
+          "$ref": "#/definitions/Dataset"
+        },
+        "org": {
+          "$ref": "#/definitions/Organization"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "dashboardItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DashboardItem"
+          }
+        }
+      }
+    },
+    "Dashboard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "public": {
+          "type": "boolean",
+          "default": false
+        },
+        "publicId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "org": {
+          "$ref": "#/definitions/Organization"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DashboardItem"
+          }
+        }
+      }
+    },
+    "DashboardItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "w": {
+          "type": "integer"
+        },
+        "h": {
+          "type": "integer"
+        },
+        "dashboard": {
+          "$ref": "#/definitions/Dashboard"
+        },
+        "chart": {
+          "$ref": "#/definitions/Chart"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "user": {
+      "$ref": "#/definitions/User"
+    },
+    "organization": {
+      "$ref": "#/definitions/Organization"
+    },
+    "organizationMember": {
+      "$ref": "#/definitions/OrganizationMember"
+    },
+    "dataset": {
+      "$ref": "#/definitions/Dataset"
+    },
+    "databaseConnection": {
+      "$ref": "#/definitions/DatabaseConnection"
+    },
+    "chart": {
+      "$ref": "#/definitions/Chart"
+    },
+    "dashboard": {
+      "$ref": "#/definitions/Dashboard"
+    },
+    "dashboardItem": {
+      "$ref": "#/definitions/DashboardItem"
+    }
+  }
+}
