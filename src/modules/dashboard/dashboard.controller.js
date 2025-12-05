@@ -1,5 +1,6 @@
 import { dashboardService } from "./dashboard.service.js";
 import { ApiError } from "../../core/error.js";
+import {success} from "../../core/response.js"
 
 export const dashboardController = {
   create: async (req, res, next) => {
@@ -14,7 +15,7 @@ export const dashboardController = {
       };
 
       const dashboard = await dashboardService.create(payload);
-      res.json(dashboard);
+      return success(res,dashboard)
     } catch (err) {
       next(err);
     }
@@ -23,7 +24,7 @@ export const dashboardController = {
   update: async (req, res, next) => {
     try {
       const dashboard = await dashboardService.update(req.params.id, req.body);
-      res.json(dashboard);
+      return success(res,dashboard,"Dashboard updated");
     } catch (err) {
       next(err);
     }
@@ -32,7 +33,7 @@ export const dashboardController = {
   delete: async (req, res, next) => {
     try {
       await dashboardService.delete(req.params.id);
-      res.json({ message: "Dashboard deleted" });
+      return success(res,{ message: "Dashboard deleted" });
     } catch (err) {
       next(err);
     }
@@ -43,7 +44,7 @@ export const dashboardController = {
       const orgId = req.headers["x-org-id"];
       const dashboards = await dashboardService.listByOrg(orgId);
 
-      res.json(dashboards);
+      return success(res,dashboards,"Dashboards listed");
     } catch (err) {
       next(err);
     }
@@ -53,7 +54,7 @@ export const dashboardController = {
     try {
       const dashboard = await dashboardService.getById(req.params.id);
       if (!dashboard) throw ApiError.notFound("Dashboard not found");
-      res.json(dashboard);
+      return success(res,dashboard,"Dashboard fetched");
     } catch (err) {
       next(err);
     }
@@ -65,7 +66,7 @@ export const dashboardController = {
       const { chartId, layout } = req.body;
 
       const item = await dashboardService.addItem(dashboardId, chartId, layout);
-      res.json(item);
+      return success(res,item,"Item added");
     } catch (err) {
       next(err);
     }
@@ -74,7 +75,7 @@ export const dashboardController = {
   removeItem: async (req, res, next) => {
     try {
       await dashboardService.removeItem(req.params.itemId);
-      res.json({ message: "Item removed" });
+      return success(res,{ message: "Item removed" });
     } catch (err) {
       next(err);
     }
@@ -83,7 +84,7 @@ export const dashboardController = {
   build: async (req, res, next) => {
     try {
       const output = await dashboardService.build(req.params.id);
-      res.json(output);
+      return success(res,output,"Dashboard built");
     } catch (err) {
       next(err);
     }

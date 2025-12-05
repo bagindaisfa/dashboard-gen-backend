@@ -2,6 +2,7 @@ import { datasetService } from "./dataset.service.js";
 import prisma from "../../core/prisma.js";
 import { dbConnectionService } from "../db/dbConnection.service.js";
 import { ApiError } from "../../core/error.js";
+import { success } from "../../core/response.js";
 
 export const datasetController = {
   uploadFile: async (req, res, next) => {
@@ -19,7 +20,7 @@ export const datasetController = {
         file: req.file,
       });
 
-      res.json(dataset);
+      return success(res, dataset, "Dataset created");
     } catch (err) {
       next(err);
     }
@@ -30,7 +31,7 @@ export const datasetController = {
       const orgId = req.headers["x-org-id"];
       const datasets = await datasetService.getDatasets(orgId);
 
-      res.json(datasets);
+      return success(res, datasets, "Datasets listed");
     } catch (err) {
       next(err);
     }
@@ -52,7 +53,7 @@ export const datasetController = {
           page,
           limit
         );
-        return res.json(preview);
+        return success(res, preview)
       }
 
       if (dataset.sourceType === "postgres") {
@@ -70,7 +71,7 @@ export const datasetController = {
           limit
         );
 
-        return res.json(preview);
+        return success(res, preview);
       }
 
       res.status(400).json({ message: "Unsupported dataset type" });
@@ -105,7 +106,7 @@ export const datasetController = {
         table,
       });
 
-      res.json(dataset);
+      return success(res, dataset, "Dataset created");
     } catch (err) {
       next(err);
     }

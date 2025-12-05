@@ -1,4 +1,5 @@
 import { chartService } from "./chart.service.js";
+import { success } from "../../core/response.js";
 
 export const chartController = {
   create: async (req, res, next) => {
@@ -17,7 +18,7 @@ export const chartController = {
       };
 
       const chart = await chartService.create(payload);
-      res.json(chart);
+      return success(res,chart,"Chart created");
     } catch (err) {
       next(err);
     }
@@ -26,7 +27,7 @@ export const chartController = {
   update: async (req, res, next) => {
     try {
       const chart = await chartService.update(req.params.id, req.body);
-      res.json(chart);
+      return success(res,chart,"Chart updated");
     } catch (err) {
       next(err);
     }
@@ -35,7 +36,7 @@ export const chartController = {
   delete: async (req, res, next) => {
     try {
       await chartService.delete(req.params.id);
-      res.json({ message: "Chart deleted" });
+      return success(res,{ message: "Chart deleted" });
     } catch (err) {
       next(err);
     }
@@ -45,7 +46,7 @@ export const chartController = {
     try {
       const orgId = req.headers["x-org-id"];
       const charts = await chartService.listByOrg(orgId);
-      res.json(charts);
+      return success(res,charts);
     } catch (err) {
       next(err);
     }
@@ -54,7 +55,7 @@ export const chartController = {
   getOne: async (req, res, next) => {
     try {
       const chart = await chartService.getById(req.params.id);
-      res.json(chart);
+      return success(res,chart,"Chart fetched");
     } catch (err) {
       next(err);
     }
@@ -63,7 +64,7 @@ export const chartController = {
   build: async (req, res, next) => {
     try {
       const result = await chartService.buildChart(req.params.id);
-      res.json(result);
+      return success(res,result,"Chart built");
     } catch (err) {
       next(err);
     }

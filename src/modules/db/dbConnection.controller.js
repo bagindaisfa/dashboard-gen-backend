@@ -1,6 +1,7 @@
 import prisma from "../../core/prisma.js";
 import { dbConnectionService } from "./dbConnection.service.js";
 import { ApiError } from "../../core/error.js";
+import { success } from "../../core/response.js";
 
 export const dbConnectionController = {
   connectPostgres: async (req, res, next) => {
@@ -39,7 +40,7 @@ export const dbConnectionController = {
         createdAt: saved.createdAt,
       };
 
-      res.json(returned);
+      return success(res, returned, "Connection saved");
     } catch (err) {
       next(err);
     }
@@ -54,7 +55,7 @@ export const dbConnectionController = {
       if (!connection) throw ApiError.notFound("Database connection not found");
 
       const tables = await dbConnectionService.getTables(connection);
-      res.json(tables);
+      return success(res, tables, "Tables fetched");
     } catch (err) {
       next(err);
     }
@@ -70,7 +71,7 @@ export const dbConnectionController = {
       if (!connection) throw ApiError.notFound("Database connection not found");
 
       const cols = await dbConnectionService.getColumns(connection, table);
-      res.json(cols);
+      return success(res, cols, "Columns fetched");
     } catch (err) {
       next(err);
     }
@@ -94,7 +95,7 @@ export const dbConnectionController = {
         limit
       );
 
-      res.json(data);
+      return success(res, data, "Table previewed");
     } catch (err) {
       next(err);
     }

@@ -1,4 +1,5 @@
 import { organizationService } from "./organization.service.js";
+import { success } from "../../core/response.js";
 
 export const organizationController = {
   create: async (req, res, next) => {
@@ -11,7 +12,7 @@ export const organizationController = {
         ownerId: userId,
       });
 
-      res.json(org);
+      return success(res, org, "Organization created", 201);
     } catch (err) {
       next(err);
     }
@@ -22,7 +23,7 @@ export const organizationController = {
       const userId = req.user.id;
       const orgs = await organizationService.listByUser(userId);
 
-      res.json(orgs);
+      return success(res, orgs, "Organizations listed");
     } catch (err) {
       next(err);
     }
@@ -35,7 +36,7 @@ export const organizationController = {
 
       const member = await organizationService.addMember(orgId, userId, role);
 
-      res.json(member);
+      return success(res, member, "Member added");
     } catch (err) {
       next(err);
     }
@@ -47,7 +48,7 @@ export const organizationController = {
 
       const list = await organizationService.listMembers(orgId);
 
-      res.json(list);
+      return success(res, list, "Members listed");
     } catch (err) {
       next(err);
     }

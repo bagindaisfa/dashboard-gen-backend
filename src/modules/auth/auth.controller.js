@@ -1,10 +1,11 @@
 import { authService } from "./auth.service.js";
+import { success } from "../../core/response.js";
 
 export const authController = {
   register: async (req, res, next) => {
     try {
       const data = await authService.register(req.body);
-      res.json(data);
+      return success(res, data, "Registration successful", 201);
     } catch (err) {
       next(err);
     }
@@ -13,7 +14,7 @@ export const authController = {
   login: async (req, res, next) => {
     try {
       const data = await authService.login(req.body);
-      res.json(data);
+      return success(res, data, "Login successful");
     } catch (err) {
       next(err);
     }
@@ -23,7 +24,7 @@ export const authController = {
     try {
       const token = req.body.refreshToken;
       const data = await authService.refreshToken(token);
-      res.json(data);
+      return success(res, data, "Token refreshed");
     } catch (err) {
       next(err);
     }

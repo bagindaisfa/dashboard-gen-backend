@@ -1,4 +1,5 @@
 import { queryService } from "./query.service.js";
+import {success } from "../../core/response.js"
 
 export const queryController = {
   runQuery: async (req, res, next) => {
@@ -8,7 +9,7 @@ export const queryController = {
 
       const result = await queryService.runQuery(datasetId, query);
 
-      res.json(result);
+      return success(res,result,"Query run");
     } catch (err) {
       next(err);
     }
