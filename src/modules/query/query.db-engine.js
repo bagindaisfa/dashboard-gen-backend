@@ -34,7 +34,26 @@ export const dbQueryEngine = {
     // ==========================================
     // STEP 2 — BUILD SQL BASE
     // ==========================================
-    let sql = `SELECT * FROM "${table}"`;
+    // Determine selected columns
+    let selectedColumns = "*";
+
+    if (query.select && Array.isArray(query.select)) {
+      if (query.select.includes("*")) {
+        selectedColumns = "*";
+      } else {
+        // Validate selected fields exist
+        const invalid = query.select.filter((col) => !columnTypes[col]);
+        if (invalid.length > 0) {
+          throw ApiError.badRequest(
+            `Unknown fields in select: ${invalid.join(", ")}`
+          );
+        }
+
+        selectedColumns = query.select.map((c) => `"${c}"`).join(", ");
+      }
+    }
+
+    let sql = `SELECT ${selectedColumns} FROM "${table}"`;
     const params = [];
     let where = [];
 

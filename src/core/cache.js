@@ -1,20 +1,32 @@
-const cache = new Map();
+// Simple in-memory cache
+const store = new Map();
 
-export const setCache = (key, value, ttl = 60000) => {
-  cache.set(key, {
-    value,
-    expiresAt: Date.now() + ttl,
-  });
-};
+export const cache = {
+  get(key) {
+    const item = store.get(key);
+    if (!item) return null;
 
-export const getCache = (key) => {
-  const entry = cache.get(key);
-  if (!entry) return null;
+    const { expiresAt, value } = item;
+    if (expiresAt && expiresAt < Date.now()) {
+      store.delete(key);
+      return null;
+    }
 
-  if (Date.now() > entry.expiresAt) {
-    cache.delete(key);
-    return null;
-  }
+    return value;
+  },
 
-  return entry.value;
+  set(key, value, ttlMs = 60_000) {
+    store.set(key, {
+      value,
+      expiresAt: ttlMs ? Date.now() + ttlMs : null,
+    });
+  },
+
+  delete(key) {
+    store.delete(key);
+  },
+
+  clear() {
+    store.clear();
+  },
 };

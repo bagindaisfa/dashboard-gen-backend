@@ -2,19 +2,20 @@ import prisma from "../../core/prisma.js";
 import { fileQueryEngine } from "./query.file-engine.js";
 import { dbQueryEngine } from "./query.db-engine.js";
 import hash from "object-hash";
-import { getCache, setCache } from "../../core/cache.js";
+import { cache } from "../../core/cache.js";
 import { ApiError } from "../../core/error.js";
+import { buildQuerySignature } from "./query.signature.js";
 
 export const queryService = {
   runQuery: async (datasetId, query) => {
-    const cacheKey = `query:${datasetId}:${hash(query)}`;
+    const signature = buildQuerySignature(datasetId, query);
 
-    // 1. TRY CACHE
-    const cached = getCache(cacheKey);
+    // 1. Check cache first
+    const cached = cache.get(signature);
     if (cached) {
       return {
-        cached: true,
         ...cached,
+        fromCache: true,
       };
     }
 
@@ -42,11 +43,11 @@ export const queryService = {
     }
 
     // 4. SET CACHE (TTL 30 seconds)
-    setCache(cacheKey, result, 30 * 1000);
+    cache.set(signature, result, 60_000); // 1 minute TTL
 
     return {
-      cached: false,
       ...result,
+      fromCache: false,
     };
   },
 };

@@ -83,7 +83,24 @@ export const fileQueryEngine = {
       return { value };
     }
 
-    // 5. Pagination
+    // -----------------------------------------------------
+    // 5. SELECT (projection)
+    // -----------------------------------------------------
+    if (
+      query.select &&
+      Array.isArray(query.select) &&
+      !query.select.includes("*")
+    ) {
+      rows = rows.map((row) => {
+        const picked = {};
+        query.select.forEach((field) => {
+          picked[field] = row[field];
+        });
+        return picked;
+      });
+    }
+
+    // 6. Pagination
     const total = rows.length;
     const limit = query.limit || 50;
     const page = query.page || 1;
